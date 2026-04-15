@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-sm12">
+                <div class="layui-card">
+                    <div class="layui-card-header">出版社维度分析</div>
+                    <div class="layui-card-body">
+                        <div class="layui-row">
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">高产出版社</div>
+                                    <div class="layui-card-body">
+                                        <div id="high_production_publisher" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">高评出版社</div>
+                                    <div class="layui-card-body">
+                                        <div id="high_rating_publisher" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md12">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">最受欢迎的出版社</div>
+                                    <div class="layui-card-body">
+                                        <div id="popular_publisher" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock content %}
+{% block js %}
+    <script>
+        layui.config({
+            base: '{% static "layuiadmin/" %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'echarts'], function() {
+            var $ = layui.jquery,
+                echarts = layui.echarts;
+
+            // 高产出版社图表
+            var highProductionPublisherChart = echarts.init(document.getElementById('high_production_publisher'));
+            highProductionPublisherChart.setOption({
+                title: {
+                    text: '高产出版社Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for publisher, count in high_production_publishers %}'{{ publisher }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '图书数量'
+                },
+                series: [{
+                    data: [{% for publisher, count in high_production_publishers %}{{ count }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                }]
+            });
+
+            // 高评出版社图表
+            var highRatingPublisherChart = echarts.init(document.getElementById('high_rating_publisher'));
+            highRatingPublisherChart.setOption({
+                title: {
+                    text: '高评出版社Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for publisher, rating in high_rating_publishers %}'{{ publisher }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '平均评分',
+                    max: 5
+                },
+                series: [{
+                    data: [{% for publisher, rating in high_rating_publishers %}{{ rating|floatformat:2 }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                }]
+            });
+
+            // 最受欢迎的出版社图表
+            var popularPublisherChart = echarts.init(document.getElementById('popular_publisher'));
+            popularPublisherChart.setOption({
+                title: {
+                    text: '最受欢迎的出版社Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for publisher, read_count in popular_publishers %}'{{ publisher }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '平均阅读人数'
+                },
+                series: [{
+                    data: [{% for publisher, read_count in popular_publishers %}{{ read_count|floatformat:0 }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#fac858'
+                    }
+                }]
+            });
+
+            // 响应式处理
+            window.addEventListener('resize', function() {
+                highProductionPublisherChart.resize();
+                highRatingPublisherChart.resize();
+                popularPublisherChart.resize();
+            });
+        });
+    </script>
+{% endblock js %}

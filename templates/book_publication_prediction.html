@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="layui-col-md12">
+  <div class="layui-card">
+    <div class="layui-card-header">图书发布数量预测分析</div>
+    <div class="layui-card-body">
+      <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+          <div class="layui-card">
+            <div class="layui-card-header">2026-2031年图书发布数量预测</div>
+            <div class="layui-card-body">
+              <div id="publicationChart" style="width: 100%; height: 400px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+  // 直接使用固定数据测试图表
+  var years = [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031];
+  var historicalData = [50, 60, 75, 90, 105, 120, 0, 0, 0, 0, 0, 0];
+  var predictedData = [0, 0, 0, 0, 0, 0, 135, 150, 165, 180, 195, 210];
+  
+  // 等待DOM加载完成
+  window.onload = function() {
+    // 检查元素是否存在
+    var chartElement = document.getElementById('publicationChart');
+    if (!chartElement) {
+      console.error('图表元素不存在');
+      return;
+    }
+    
+    // 初始化图表
+    var chart = echarts.init(chartElement);
+    
+    // 配置图表选项
+    var option = {
+      title: {
+        text: '图书发布数量趋势与预测',
+        left: 'center'
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      legend: {
+        data: ['历史数据', '预测数据'],
+        bottom: 10
+      },
+      xAxis: {
+        type: 'category',
+        data: years,
+        axisLabel: {
+          interval: 0,
+          rotate: 45
+        }
+      },
+      yAxis: {
+        type: 'value',
+        name: '图书数量（本）',
+        min: 0
+      },
+      series: [
+        {
+          name: '历史数据',
+          type: 'line',
+          data: historicalData,
+          symbol: 'circle',
+          symbolSize: 8
+        },
+        {
+          name: '预测数据',
+          type: 'line',
+          data: predictedData,
+          symbol: 'circle',
+          symbolSize: 8,
+          lineStyle: {
+            type: 'dashed'
+          },
+          itemStyle: {
+            color: '#ff7f50'
+          }
+        }
+      ]
+    };
+    
+    try {
+      // 设置图表选项
+      chart.setOption(option);
+      console.log('图表初始化成功');
+    } catch (e) {
+      console.error('图表初始化失败:', e);
+    }
+    
+    // 响应式调整
+    window.addEventListener('resize', function() {
+      chart.resize();
+    });
+  };
+</script>
+{% endblock %}

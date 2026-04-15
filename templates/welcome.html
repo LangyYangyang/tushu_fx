@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-sm6 layui-col-md3">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        信息量
+                    </div>
+                    <div class="layui-card-body layuiadmin-card-list">
+                        <p class="layuiadmin-big-font">{{ all_book }}条</p>
+                        <p>总计图书信息数量</p>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm6 layui-col-md3">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        最高价格
+                    </div>
+                    <div class="layui-card-body layuiadmin-card-list">
+                        <p class="layuiadmin-big-font">{{ book_data_1.price }}元</p>
+                        <p>{{ book_data_1.book_name | truncatechars:26 }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm6 layui-col-md3">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        平均价格
+                    </div>
+                    <div class="layui-card-body layuiadmin-card-list">
+                        <p class="layuiadmin-big-font">{{ mean_price }}元</p>
+                        <p>所有图书的平均价格</p>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-sm6 layui-col-md3">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        爬取次数
+                    </div>
+                    <div class="layui-card-body layuiadmin-card-list">
+                        <p class="layuiadmin-big-font">{{ spider_info.count }}次</p>
+                        <p>
+                            总计爬取{{ spider_info.count }}次,共{{ spider_info.page }}页
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">类型分布</div>
+                    <div class="layui-card-body">
+                        <div id="categoryChart" style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md6">
+                <div class="layui-card">
+                    <div class="layui-card-header">作者分布</div>
+                    <div class="layui-card-body">
+                        <div id="authorChart" style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">评分最高TOP10</div>
+                    <div class="layui-card-body">
+                        <table class="layui-table">
+                            <thead>
+                            <tr>
+                                <th>图书编号</th>
+                                <th>图书名称</th>
+                                <th>评分</th>
+                                <th>价格</th>
+                                <th>作者</th>
+                                <th>出版社</th>
+                                <th>阅读人数</th>
+                                <th>评论数</th>
+                                <th>类型</th>
+                            </thead>
+                            <tbody>
+                            {% for book in rating_top_books %}
+                                <tr>
+                                    <td>{{ book.id }}</td>
+                                    <td>{{ book.book_name | truncatechars:16 }}</td>
+                                    <td>{{ book.rating }}</td>
+                                    <td>{{ book.price }}</td>
+                                    <td>{{ book.author | truncatechars:10 }}</td>
+                                    <td>{{ book.publisher | truncatechars:10 }}</td>
+                                    <td>{{ book.read_count }}</td>
+                                    <td>{{ book.comment_count }}</td>
+                                    <td>{{ book.category }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div style="text-align: center;">
+                            <div id="test-laypage-demo0"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+{% endblock %}
+{% block js %}
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 类型分布饼图
+            var categoryChart = echarts.init(document.getElementById('categoryChart'));
+            var categoryOption = {
+                title: {
+                    text: '图书类型分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: [{% for item in category_data %}'{{ item.name|escapejs }}',{% endfor %}]
+                },
+                series: [
+                    {
+                        name: '类型',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                        data: [{% for item in category_data %}{value: {{ item.value }}, name: '{{ item.name|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            categoryChart.setOption(categoryOption);
+
+            // 出版社分布饼图
+            var authorChart = echarts.init(document.getElementById('authorChart'));
+            var authorOption = {
+                title: {
+                    text: '出版社分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: [{% for item in author_data %}'{{ item.name|escapejs }}',{% endfor %}]
+                },
+                series: [
+                    {
+                        name: '作者',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '60%'],
+                        data: [{% for item in author_data %}{value: {{ item.value }}, name: '{{ item.name|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            authorChart.setOption(authorOption);
+
+            // 响应式调整
+            window.addEventListener('resize', function() {
+                categoryChart.resize();
+                authorChart.resize();
+            });
+        });
+    </script>
+{% endblock %}

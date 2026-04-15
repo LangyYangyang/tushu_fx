@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">错误信息</div>
+                    <div class="layui-card-body">
+                        <div class="layui-alert layui-bg-red" style="margin-top: 20px;">
+                            <strong>错误:</strong> {{ error }}
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <a href="/index/" class="layui-btn">返回首页</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}

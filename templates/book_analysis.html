@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-sm12">
+                <div class="layui-card">
+                    <div class="layui-card-header">书籍维度分析</div>
+                    <div class="layui-card-body">
+                        <div class="layui-row">
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">评分区间数量分布</div>
+                                    <div class="layui-card-body">
+                                        <div id="rating_distribution" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">价格分布</div>
+                                    <div class="layui-card-body">
+                                        <div id="price_distribution" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">出版年份分布</div>
+                                    <div class="layui-card-body">
+                                        <div id="publish_year_distribution" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">热度最高top10</div>
+                                    <div class="layui-card-body">
+                                        <div id="hot_books" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock content %}
+{% block js %}
+    <script>
+        layui.config({
+            base: '{% static "layuiadmin/" %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'echarts'], function() {
+            var $ = layui.jquery,
+                echarts = layui.echarts;
+
+            // 评分区间数量分布图表
+            var ratingDistributionChart = echarts.init(document.getElementById('rating_distribution'));
+            var ratingData = [
+                {% for range, count in rating_ranges.items %}
+                {value: {{ count }}, name: '{{ range }}'}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+            ratingDistributionChart.setOption({
+                title: {
+                    text: '评分区间数量分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: ratingData.map(item => item.name)
+                },
+                series: [{
+                    name: '评分区间',
+                    type: 'pie',
+                    radius: '50%',
+                    data: ratingData,
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            });
+
+            // 价格分布图表
+            var priceDistributionChart = echarts.init(document.getElementById('price_distribution'));
+            var priceCategories = [{% for range in price_ranges.keys %}'{{ range }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+            var priceValues = [{% for count in price_ranges.values %}{{ count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+            priceDistributionChart.setOption({
+                title: {
+                    text: '价格分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: priceCategories
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '图书数量'
+                },
+                series: [{
+                    data: priceValues,
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                }]
+            });
+
+            // 出版年份分布图表
+            var publishYearDistributionChart = echarts.init(document.getElementById('publish_year_distribution'));
+            var yearCategories = [{% for year in year_ranges.keys %}'{{ year }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+            var yearValues = [{% for count in year_ranges.values %}{{ count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+            publishYearDistributionChart.setOption({
+                title: {
+                    text: '出版年份分布',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: yearCategories
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '图书数量'
+                },
+                series: [{
+                    data: yearValues,
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                }]
+            });
+
+            // 热度最高top10图表
+            var hotBooksChart = echarts.init(document.getElementById('hot_books'));
+            var hotBooksData = [{% for book, count in hot_books %}{name: '{{ book|escapejs }}', value: {{ count }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+            hotBooksChart.setOption({
+                title: {
+                    text: '热度最高top10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '阅读人数'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: hotBooksData.map(item => item.name),
+                    axisLabel: {
+                        interval: 0,
+                        rotate: 30
+                    }
+                },
+                series: [{
+                    data: hotBooksData.map(item => item.value),
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#fac858'
+                    }
+                }]
+            });
+
+            // 响应式处理
+            window.addEventListener('resize', function() {
+                ratingDistributionChart.resize();
+                priceDistributionChart.resize();
+                publishYearDistributionChart.resize();
+                hotBooksChart.resize();
+            });
+        });
+    </script>
+{% endblock js %}

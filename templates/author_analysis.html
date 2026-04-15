@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-sm12">
+                <div class="layui-card">
+                    <div class="layui-card-header">作者维度分析</div>
+                    <div class="layui-card-body">
+                        <div class="layui-row">
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">高产作者</div>
+                                    <div class="layui-card-body">
+                                        <div id="high_production" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">高评作者</div>
+                                    <div class="layui-card-body">
+                                        <div id="high_rating" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="layui-col-md12">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">热度作者</div>
+                                    <div class="layui-card-body">
+                                        <div id="hot_authors" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock content %}
+{% block js %}
+    <script>
+        layui.config({
+            base: '{% static "layuiadmin/" %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'echarts'], function() {
+            var $ = layui.jquery,
+                echarts = layui.echarts;
+
+            // 高产作者图表
+            var highProductionChart = echarts.init(document.getElementById('high_production'));
+            highProductionChart.setOption({
+                title: {
+                    text: '高产作者Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for author, count in high_production_authors %}'{{ author }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '图书数量'
+                },
+                series: [{
+                    data: [{% for author, count in high_production_authors %}{{ count }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#5470c6'
+                    }
+                }]
+            });
+
+            // 高评作者图表
+            var highRatingChart = echarts.init(document.getElementById('high_rating'));
+            highRatingChart.setOption({
+                title: {
+                    text: '高评作者Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for author, rating in high_rating_authors %}'{{ author }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '平均评分',
+                    max: 5
+                },
+                series: [{
+                    data: [{% for author, rating in high_rating_authors %}{{ rating|floatformat:2 }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#91cc75'
+                    }
+                }]
+            });
+
+            // 热度作者图表
+            var hotAuthorsChart = echarts.init(document.getElementById('hot_authors'));
+            hotAuthorsChart.setOption({
+                title: {
+                    text: '热度作者Top 10',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [{% for author, read_count in hot_authors %}'{{ author }}',{% endfor %}],
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '平均阅读人数'
+                },
+                series: [{
+                    data: [{% for author, read_count in hot_authors %}{{ read_count|floatformat:0 }},{% endfor %}],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#fac858'
+                    }
+                }]
+            });
+
+            // 响应式处理
+            window.addEventListener('resize', function() {
+                highProductionChart.resize();
+                highRatingChart.resize();
+                hotAuthorsChart.resize();
+            });
+        });
+    </script>
+{% endblock js %}

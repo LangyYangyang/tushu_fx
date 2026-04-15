@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">用户行为分析</div>
+                    <div class="layui-card-body">
+                        <div class="layui-row">
+                            <!-- 用户收藏图书数量分布 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">用户收藏图书数量分布</div>
+                                    <div class="layui-card-body">
+                                        <div id="collection_count_distribution" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 热门收藏图书 -->
+                            <div class="layui-col-md6">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">热门收藏图书</div>
+                                    <div class="layui-card-body">
+                                        <div id="popular_collected_books" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 用户收藏类型偏好 -->
+                            <div class="layui-col-md12">
+                                <div class="layui-card">
+                                    <div class="layui-card-header">用户收藏类型偏好</div>
+                                    <div class="layui-card-body">
+                                        <div id="category_preference_distribution" style="width: 100%; height: 400px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+    layui.config({
+        base: '{% static "layuiadmin/" %}' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index'], function() {
+        // 用户收藏图书数量分布图
+        var collectionCountChart = echarts.init(document.getElementById('collection_count_distribution'));
+        var collectionCountData = [{% for count, user_count in collection_count_distribution.items %}{value: {{ user_count }}, name: '{{ count }}本'}{% if not forloop.last %},{% endif %}{% endfor %}];
+        collectionCountChart.setOption({
+            title: {
+                text: '用户收藏图书数量分布',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: collectionCountData.map(item => item.name)
+            },
+            series: [{
+                name: '用户数量',
+                type: 'pie',
+                radius: '60%',
+                data: collectionCountData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }]
+        });
+
+        // 热门收藏图书图
+        var popularBooksChart = echarts.init(document.getElementById('popular_collected_books'));
+        var popularBooksData = [{% for book, count in popular_collected_books %}{name: '{{ book|escapejs }}', value: {{ count }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+        popularBooksChart.setOption({
+            title: {
+                text: '热门收藏图书',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                name: '收藏次数'
+            },
+            yAxis: {
+                type: 'category',
+                data: popularBooksData.map(item => item.name),
+                axisLabel: {
+                    interval: 0,
+                    rotate: 30
+                }
+            },
+            series: [{
+                data: popularBooksData.map(item => item.value),
+                type: 'bar',
+                itemStyle: {
+                    color: '#5470c6'
+                }
+            }]
+        });
+
+        // 用户收藏类型偏好图
+        var categoryPreferenceChart = echarts.init(document.getElementById('category_preference_distribution'));
+        var categoryPreferenceData = [{% for category, count in category_preference_distribution.items %}{value: {{ count }}, name: '{{ category|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}];
+        categoryPreferenceChart.setOption({
+            title: {
+                text: '用户收藏类型偏好',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                data: categoryPreferenceData.map(item => item.name)
+            },
+            series: [{
+                name: '用户数量',
+                type: 'pie',
+                radius: '60%',
+                data: categoryPreferenceData,
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }]
+        });
+
+        // 响应式调整
+        window.addEventListener('resize', function() {
+            collectionCountChart.resize();
+            popularBooksChart.resize();
+            categoryPreferenceChart.resize();
+        });
+    });
+</script>
+{% endblock %}

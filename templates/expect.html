@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md12">
+                <div class="layui-card">
+                    <div class="layui-card-header">图书意向设置</div>
+                    <div class="layui-card-body">
+                        <div class="layui-form" lay-filter="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">图书类型</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="category" title="文艺" value="文艺" {% if '文艺' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="人文社科" value="人文社科" {% if '人文社科' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="科技" value="科技" {% if '科技' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="童书" value="童书" {% if '童书' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="教育" value="教育" {% if '教育' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="生活" value="生活" {% if '生活' in category %}checked{% endif %}>
+                                    <input type="checkbox" name="category" title="其他" value="其他" {% if '其他' in category %}checked{% endif %}>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="expect" id="expect">确认选择
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock %}
+
+{% block js %}
+    <script>
+        layui.config({
+            base: '{% static "layuiadmin/" %}' //静态资源所在路径
+        }).extend({
+            index: 'lib/index' //主入口模块
+        }).use(['index', 'form'], function () {
+            var $ = layui.$,
+                layer = layui.layer
+                , form = layui.form;
+
+            form.on('submit(expect)', function (data) {
+                var post_data = data.field;
+                console.log(post_data)
+                var category = post_data.category;
+                if (!category || (Array.isArray(category) && category.length === 0)) {
+                    layer.msg("请至少选择一个图书类型！")
+                    return false
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/job_expect/',
+                    data: post_data,
+                    success: function (res) {
+                        layer.msg(res.msg);
+                    },
+                    error: function (response) {
+                        layer.msg(response.msg);
+                    }
+                })
+
+            });
+        });
+    </script>
+{% endblock %}
